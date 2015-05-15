@@ -1,0 +1,21 @@
+Package: PEPPER
+Title: PErsonalized Perturbation ProfilER
+Version: 0.1
+Author: Emre Guney and Joerg Menche
+Maintainer: Emre Guney <emreguney@gmail.com>
+Description: z-score based gene expression analysis for
+    individual samples.
+    Provides methods to get
+    z-score matrix for a given GEO data set.
+    The z-scores are calculated for each gene in each sample
+    using the mean and sd over provided control samples.
+Imports:
+    Biobase,
+    GEOquery
+Depends:
+    R (>= 3.0.2)
+Suggests:
+    limma,
+    samr
+License: TBA - potentially GPL
+LazyData: true
