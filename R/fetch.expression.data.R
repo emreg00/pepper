@@ -1,7 +1,7 @@
 
 #' Fetch expression data from GEO / or given folder
 #'
-#' @param gds.id GEO data set id.
+#' @param geo.id GEO id.
 #' @param do.log2 Apply log2 transformation to the expression values. Defaults to TRUE.
 #' @param output.dir Directory where all files will be written.
 #' @param probe.conversion Convert probe level expression to gene level using provided 
@@ -14,7 +14,7 @@
 #' gds.data = fetch.expression.data("GDS4966", do.log2=F, probe.conversion="Gene ID")
 #' expr = gds.data$expr
 #' sample.mapping = gds.data$sample.mapping
-fetch.expression.data<-function(gds.id, do.log2=NULL, probe.conversion=NULL, output.dir=paste(gds.id, "/", sep="")) {
+fetch.expression.data<-function(geo.id, sample.mapping.column=NULL, do.log2=NULL, probe.conversion=NULL, output.dir=paste(geo.id, "/", sep="")) {
     if (!file.exists(output.dir)){
 	dir.create(file.path(output.dir))
     } 
@@ -24,12 +24,21 @@ fetch.expression.data<-function(gds.id, do.log2=NULL, probe.conversion=NULL, out
     # Load expression file if exists
     if(!all(file.exists(out.file), file.exists(out.file.2), file.exists(out.file.3))) {
 	# Get data set
-	data.set = get.data.set(gds.id, output.dir)
+	data.set = get.data.set(geo.id, output.dir)
 	# Using Biobase + GEOquery methods
-	eset = GEOquery::GDS2eSet(data.set) #, do.log2=do.log2)
-	# Get sample - phenotype mapping
-	sample.mapping = Biobase::pData(eset)[,c(1:2)]
-	colnames(sample.mapping) = c("sample", "type")
+	if(substr(geo.id,1,3) == "GDS") {
+	    eset = GEOquery::GDS2eSet(data.set) #, do.log2=do.log2)
+	    # Get sample - phenotype mapping
+	    sample.mapping = Biobase::pData(eset)[,c(1:2)]
+	    colnames(sample.mapping) = c("sample", "type")
+	} else {
+	    if(is.null(sample.mapping.column)) {
+		sample.mapping.column = "characteristics_ch1"
+	    }
+	    if (length(data.set) > 1) idx = grep(geo.id, attr(data.set, "names")) else idx = 1 
+	    eset = data.set[[idx]]
+	    sample.mapping = data.frame(sample=rownames(Biobase::pData(eset)), type=Biobase::pData(eset)[, sample.mapping.column])
+	}
 	write.table(sample.mapping, out.file.2, sep="\t", quote=F, row.names=F)
 	expr = Biobase::exprs(eset)
 	if(is.null(do.log2)) {
@@ -50,8 +59,13 @@ fetch.expression.data<-function(gds.id, do.log2=NULL, probe.conversion=NULL, out
 	# This was below before causing to ignore genes with NA probes (i.e. results for joerg)
 	expr = na.omit(expr)
 	# Get probe - gene mapping
+	if(substr(geo.id,1,3) == "GDS") {
+	    geo.id = GEOquery::Meta(data.set)$platform
+	} else {
+	    geo.id = Biobase::annotation(eset)
+	}
 	if(!is.null(probe.conversion)) {
-	    gene.mapping = get.platform.annotation(data.set, probe.conversion, output.dir)
+	    gene.mapping = get.platform.annotation(geo.id, probe.conversion, output.dir)
 	    expr = convert.probe.to.gene.expression(expr, gene.mapping) 
 	} else {
 	    gene.mapping = data.frame(Probe=rownames(expr), Gene=rownames(expr))

@@ -1,13 +1,12 @@
 
 #' Get array platform annotation for probes
 #'
-#' @param data.set GEO data set.
+#' @param geo.id GEO id.
 #' @param probe.conversion Id of the column used for probe gene mapping.
 #' @param output.dir Directory to store files.
 #' @return Data frame containing gene mapping.
-get.platform.annotation<-function(data.set, probe.conversion, output.dir) {
-    gds.id = GEOquery::Meta(data.set)$platform
-    data.set = get.data.set(gds.id, output.dir)
+get.platform.annotation<-function(geo.id, probe.conversion, output.dir) {
+    data.set = get.data.set(geo.id, output.dir)
     d = GEOquery::Table(data.set)
     #print(colnames(d)) 
     #print(probe.conversion)
