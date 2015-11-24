@@ -14,7 +14,7 @@
 #' gds.data = fetch.expression.data("GDS4966", do.log2=F, probe.conversion="Gene ID")
 #' expr = gds.data$expr
 #' sample.mapping = gds.data$sample.mapping
-fetch.expression.data<-function(geo.id, sample.mapping.column=NULL, do.log2=NULL, probe.conversion=NULL, output.dir=paste(geo.id, "/", sep="")) {
+fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_ch1", do.log2=NULL, probe.conversion=NULL, output.dir=paste(geo.id, "/", sep="")) {
     if (!file.exists(output.dir)){
 	dir.create(file.path(output.dir))
     } 
@@ -31,10 +31,7 @@ fetch.expression.data<-function(geo.id, sample.mapping.column=NULL, do.log2=NULL
 	    # Get sample - phenotype mapping
 	    sample.mapping = Biobase::pData(eset)[,c(1:2)]
 	    colnames(sample.mapping) = c("sample", "type")
-	} else {
-	    if(is.null(sample.mapping.column)) {
-		sample.mapping.column = "characteristics_ch1"
-	    }
+	} else { # GSE
 	    if (length(data.set) > 1) idx = grep(geo.id, attr(data.set, "names")) else idx = 1 
 	    eset = data.set[[idx]]
 	    sample.mapping = data.frame(sample=rownames(Biobase::pData(eset)), type=Biobase::pData(eset)[, sample.mapping.column])
@@ -59,13 +56,17 @@ fetch.expression.data<-function(geo.id, sample.mapping.column=NULL, do.log2=NULL
 	# This was below before causing to ignore genes with NA probes (i.e. results for joerg)
 	expr = na.omit(expr)
 	# Get probe - gene mapping
-	if(substr(geo.id,1,3) == "GDS") {
-	    geo.id = GEOquery::Meta(data.set)$platform
-	} else {
-	    geo.id = Biobase::annotation(eset)
-	}
 	if(!is.null(probe.conversion)) {
-	    gene.mapping = get.platform.annotation(geo.id, probe.conversion, output.dir)
+	    if(is.null(nrow(Biobase::fData(eset)))) {
+		if(substr(geo.id,1,3) == "GDS") {
+		    geo.id.platform = GEOquery::Meta(data.set)$platform
+		} else {
+		    geo.id.platform = Biobase::annotation(eset)
+		}
+		gene.mapping = get.platform.annotation(geo.id.platform, probe.conversion, output.dir)
+	    } else {
+		gene.mapping = data.frame(Probe = Biobase::fData(eset)[,"ID"], Gene = Biobase::fData(eset)[,probe.conversion]) 
+	    }
 	    expr = convert.probe.to.gene.expression(expr, gene.mapping) 
 	} else {
 	    gene.mapping = data.frame(Probe=rownames(expr), Gene=rownames(expr))
