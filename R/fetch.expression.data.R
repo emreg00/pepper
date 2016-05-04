@@ -8,13 +8,16 @@
 #' annotation label (uses platform specific annotations downloaded from GEO). 
 #' Defaults to NULL (no conversion). In case of multiple probes, probe with absolute max
 #' value is chosen.
+#' @param conversion.mapping Mapping of platform specific ids to user provided ids
+#' @param conversion.mapping.function Function to process probe name such that it matches
+#' with the ids provided in conversion.map
 #' @return A list containing 3 data frames: expression matrix, sample mapping, gene mapping.
 #' @export
 #' @examples
 #' gds.data = fetch.expression.data("GDS4966", do.log2=F, probe.conversion="Gene ID")
 #' expr = gds.data$expr
 #' sample.mapping = gds.data$sample.mapping
-fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_ch1", do.log2=NULL, probe.conversion=NULL, output.dir=paste(geo.id, "/", sep="")) {
+fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_ch1", do.log2=NULL, probe.conversion=NULL, conversion.mapping=NULL, conversion.mapping.function=NULL, output.dir=paste(geo.id, "/", sep="")) {
     if (!file.exists(output.dir)){
 	dir.create(file.path(output.dir))
     } 
@@ -66,6 +69,17 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 		gene.mapping = get.platform.annotation(geo.id.platform, probe.conversion, output.dir)
 	    } else {
 		gene.mapping = data.frame(Probe = Biobase::fData(eset)[,"ID"], Gene = Biobase::fData(eset)[,probe.conversion]) 
+	    }
+	    if(!is.null(conversion.mapping.function)) {
+		gene.mapping$Gene = unlist(lapply(as.character(gene.mapping$Gene), conversion.mapping.function))
+	    }
+	    if(!is.null(conversion.mapping)) {
+		# Likely to convert accession numbers to geneids - get rid of version (trailing dots and digits)
+		gene.mapping = data.frame(Probe = gene.mapping$Probe, Gene = as.character(conversion.mapping[sub("\\.[0-9]+", "", gene.mapping$Gene)]))
+		gene.mapping$Gene = factor(gene.mapping$Gene, levels=c(levels(gene.mapping$Gene), ""))
+		gene.mapping[gene.mapping$Gene == "NULL", "Gene"] = ""
+		#gene.mapping[gene.mapping$Gene == "NULL", "Gene"] = NA
+		#gene.mapping = na.omit(gene.mapping) 
 	    }
 	    expr = convert.probe.to.gene.expression(expr, gene.mapping) 
 	} else {
