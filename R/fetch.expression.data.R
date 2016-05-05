@@ -70,16 +70,22 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	    } else {
 		gene.mapping = data.frame(Probe = Biobase::fData(eset)[,"ID"], Gene = Biobase::fData(eset)[,probe.conversion]) 
 	    }
+	    #print(head(gene.mapping, 20))
 	    if(!is.null(conversion.mapping.function)) {
 		gene.mapping$Gene = unlist(lapply(as.character(gene.mapping$Gene), conversion.mapping.function))
 	    }
+	    #print(head(gene.mapping, 20)) 
 	    if(!is.null(conversion.mapping)) {
 		# Likely to convert accession numbers to geneids - get rid of version (trailing dots and digits)
 		gene.mapping = data.frame(Probe = gene.mapping$Probe, Gene = as.character(conversion.mapping[sub("\\.[0-9]+", "", gene.mapping$Gene)]))
 		gene.mapping$Gene = factor(gene.mapping$Gene, levels=c(levels(gene.mapping$Gene), ""))
-		gene.mapping[gene.mapping$Gene == "NULL", "Gene"] = ""
+		gene.mapping[gene.mapping$Gene %in% c("NULL", "---", " ", "NA"), "Gene"] = ""
 		#gene.mapping[gene.mapping$Gene == "NULL", "Gene"] = NA
 		#gene.mapping = na.omit(gene.mapping) 
+	    }
+	    #print(head(gene.mapping, 20)) 
+	    if(length(levels(factor(gene.mapping$Gene))) == 1) {
+		stop("Problem with gene mapping!")
 	    }
 	    expr = convert.probe.to.gene.expression(expr, gene.mapping) 
 	} else {
