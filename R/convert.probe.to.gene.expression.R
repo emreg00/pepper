@@ -19,9 +19,12 @@ convert.probe.to.gene.expression<-function(expr, gene.mapping, selection.functio
     }
     gene.mapping = factor(gene.mapping[,"Gene"])
     if(is.null(selection.function)) {
-	selection.function<-function(asample){ # max
-	   return(tapply(abs(asample), gene.mapping, max)) #mean)) 
+	# Median of probes
+	selection.function<-function(asample){
+	   #return(tapply(asample, gene.mapping, function(x) { x[which.max(abs(x))] })) # probe w/ max abs value
+	   return(tapply(asample, gene.mapping, median)) 
 	}
+	# Probe with max variance
 	#variances = apply(expr, 1, var)
 	#get.max<-function(e) {
 	#    idx = which.max(e[,2])

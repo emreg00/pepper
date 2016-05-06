@@ -47,14 +47,18 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	    LogC = (qx[5] > 100) || (qx[6]-qx[1] > 50 && qx[2] > 0) || (qx[2] > 0 && qx[2] < 1 && qx[4] > 1 && qx[4] < 2)
 	    if (LogC) { 
 		do.log2 = T
-		expr[which(expr <= 0)] = NA
-		print("Expression will be log2 transformed")
 	    } else {
 		do.log2 = F
 	    }
 	}
 	if(do.log2) {
-	    expr = log2(expr)
+	    print("Expression will be log2 transformed")
+	    # To avoid leaving out probes with negative values
+	    #expr[which(expr <= 0)] = NA
+	    if(min(expr, na.rm=T) < 0) {
+		expr = expr - min(expr)
+	    }
+	    expr = log2(expr+1)
 	}
 	# This was below before causing to ignore genes with NA probes (i.e. results for joerg)
 	expr = na.omit(expr)
@@ -79,7 +83,7 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 		# Likely to convert accession numbers to geneids - get rid of version (trailing dots and digits)
 		gene.mapping = data.frame(Probe = gene.mapping$Probe, Gene = as.character(conversion.mapping[sub("\\.[0-9]+", "", gene.mapping$Gene)]))
 		gene.mapping$Gene = factor(gene.mapping$Gene, levels=c(levels(gene.mapping$Gene), ""))
-		gene.mapping[gene.mapping$Gene %in% c("NULL", "---", " ", "NA"), "Gene"] = ""
+		gene.mapping[gene.mapping$Gene %in% c("NULL", "---", "-", " "), "Gene"] = ""
 		#gene.mapping[gene.mapping$Gene == "NULL", "Gene"] = NA
 		#gene.mapping = na.omit(gene.mapping) 
 	    }
