@@ -9,9 +9,9 @@
 #' @param state.background Condition to be considered as control.
 #' @param adjust.method Multiple hypothesis testing correction method. 
 #'    Defaults to BH.
-#' @param cutoff Adjust p-value cutoff. Defaults to 0.2.
+#' @param cutoff Adjust p-value cutoff. Defaults to 0.05.
 #' @return Data frame with results
-find.de.genes.welch<-function(expr, sample.mapping, states, out.file=NULL, state.background=NULL, adjust.method='BH', cutoff=0.2) {
+find.de.genes.welch<-function(expr, sample.mapping, states, out.file=NULL, state.background=NULL, adjust.method='BH', cutoff=0.05) {
     if(is.null(state.background)) {
 	state.background = "case"
     }
@@ -27,6 +27,7 @@ find.de.genes.welch<-function(expr, sample.mapping, states, out.file=NULL, state
     if(!is.null(out.file)) {
 	write.table(d, file=out.file, row.names=F, quote=F, sep="\t")
     }
+    d = d[d$adj.P.Val<=cutoff,]
     return(d) 
 }
 

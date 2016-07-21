@@ -9,7 +9,8 @@
 #' @param state.background Condition to be considered as control.
 #' @param adjust.method Multiple hypothesis testing correction method. 
 #'    Defaults to BH.
-#' @param cutoff Adjust p-value cutoff. Defaults to 0.2
+#' @param cutoff Adjust p-value cutoff. Defaults to 0.05
+#' @param functional.enrichment GO or KEGG based functional enrichment analysis
 #' @return data frame with results
 #' @keywords internal
 #' @export
@@ -21,7 +22,7 @@
 #'  		    states.control = c("healthy donor"), 
 #' 		    states.case = c("tuberculosis", "latent tuberculosis infection"))
 #' d = find.de.genes(expr, sample.mapping, c("case", "control"), method="limma")
-find.de.genes<-function(expr, sample.mapping, states, method="limma", out.file=NULL, state.background=NULL, adjust.method='BH', cutoff=0.2) {
+find.de.genes<-function(expr, sample.mapping, states, method="limma", out.file=NULL, state.background=NULL, adjust.method='BH', cutoff=0.05, functional.enrichment=NULL) {
     d = NULL
     if(method == "all") {
 	# SAM
@@ -42,12 +43,34 @@ find.de.genes<-function(expr, sample.mapping, states, method="limma", out.file=N
 	#print(c("sam vs t", length(intersect(e.sam$GeneID, e.welch$GeneID))))
     } else if(method == "limma") {
 	d = find.de.genes.limma(expr, sample.mapping, states, out.file, state.background, adjust.method, cutoff)
-	#e = d[d$adj.P.Val<=cutoff,]
-	#print(dim(e))
     } else if(method == "sam") {
 	d = find.de.genes.sam(expr, sample.mapping, states, out.file, state.background, adjust.method, cutoff)
     } else if(method == "welch") {
 	d = find.de.genes.welch(expr, sample.mapping, states, out.file, state.background, adjust.method, cutoff)
+    }
+    if(!is.null(functional.enrichment)) {
+	if (!requireNamespace("limma", quietly=TRUE)) {
+	    stop("Functional enrichment analysis requires limma package to be installed")
+	}
+	genes = rownames(d)
+	genes = unlist(lapply(strsplit(genes, " /// "), function(x) {x[1]}))
+	if(!is.null(out.file)) {
+	    file.name = paste0(out.file, ".", functional.enrichment)
+	}
+	if(functional.enrichment == "go") {
+	    limma::go = goana(genes)
+	    a = limma::topGO(go)
+	} else if(functional.enrichment == "kegg") {
+	    kegg = limma::kegga(genes)
+	    a = limma::topKEGG(kegg)
+	} else {
+	    stop("Unrecognized functional enrichment type!")
+	}
+	if(is.null(out.file)) {
+	    print(a)
+	} else {
+	    write.table(a, file=file.name, row.names=T, quote=F, sep="\t")
+	}
     }
     return(d)
 }

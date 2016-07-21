@@ -8,9 +8,9 @@
 #' @param state.background Condition to be considered as control.
 #' @param adjust.method Multiple hypothesis testing correction method. 
 #'    Defaults to BH.
-#' @param cutoff Adjust p-value cutoff. Defaults to 0.2
+#' @param cutoff Adjust p-value cutoff. Defaults to 0.05
 #' @return Data frame with results.
-find.de.genes.limma<-function(expr, sample.mapping, states, out.file=NULL, state.background=NULL, adjust.method='BH', cutoff=0.2) {
+find.de.genes.limma<-function(expr, sample.mapping, states, out.file=NULL, state.background=NULL, adjust.method='BH', cutoff=0.05) {
     if (!requireNamespace("limma", quietly=TRUE)) {
 	stop("Differential expression using LIMMA requires limma package to be installed")
     }
@@ -43,18 +43,19 @@ find.de.genes.limma<-function(expr, sample.mapping, states, out.file=NULL, state
     fit2 = limma::contrasts.fit(fit, cont.matrix)
     fit2 = limma::eBayes(fit2)
     #topTable(fit2, coef=1, adjust="BH") #adjust="fdr", sort.by="B",
-    d = limma::topTable(fit2, coef=1, adjust=adjust.method, sort.by="B", number=100000)
+    d = limma::topTable(fit2, coef=1, adjust=adjust.method, sort.by="B", number=Inf)
     d$GeneID = rownames(d)
     n = ncol(d)
     d = d[,c(n, 1:(n-1))]
     if(!is.null(out.file)) {
 	write.table(d, file=out.file, row.names=F, quote=F, sep="\t")
-	#results = decideTests(fit2, adjust.method=adjust.method, p.value=cutoff) # none
-	#png(paste(out.file, ".png", sep=""))
-	#vennDiagram(results)
-	#dev.off()
     }
-    return(d) #(d[d$adj.P.Val<=cutoff,])
+    #results = decideTests(fit2, adjust.method=adjust.method, p.value=cutoff) # none
+    #png(paste(out.file, ".png", sep=""))
+    #vennDiagram(results)
+    #dev.off()
+    d = d[d$adj.P.Val<=cutoff,]
+    return(d) 
 }
 
 

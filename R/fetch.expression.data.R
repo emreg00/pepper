@@ -11,13 +11,14 @@
 #' @param conversion.mapping Mapping of platform specific ids to user provided ids
 #' @param conversion.mapping.function Function to process probe name such that it matches
 #' with the ids provided in conversion.map
+#' @param geo.id.sub GEO id for the sub-set (e.g., specific to the platform).
 #' @return A list containing 3 data frames: expression matrix, sample mapping, gene mapping.
 #' @export
 #' @examples
 #' gds.data = fetch.expression.data("GDS4966", do.log2=F, probe.conversion="Gene ID")
 #' expr = gds.data$expr
 #' sample.mapping = gds.data$sample.mapping
-fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_ch1", do.log2=NULL, probe.conversion=NULL, conversion.mapping=NULL, conversion.mapping.function=NULL, output.dir=paste(geo.id, "/", sep="")) {
+fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_ch1", do.log2=NULL, probe.conversion=NULL, conversion.mapping=NULL, conversion.mapping.function=NULL, output.dir=paste(geo.id, "/", sep=""), geo.id.sub=NULL, reprocess=NULL) {
     if (!file.exists(output.dir)){
 	dir.create(file.path(output.dir))
     } 
@@ -32,15 +33,60 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	if(substr(geo.id,1,3) == "GDS") {
 	    eset = GEOquery::GDS2eSet(data.set) #, do.log2=do.log2)
 	    # Get sample - phenotype mapping
-	    sample.mapping = Biobase::pData(eset)[,c(1:2)]
+	    idx = which(colnames(Biobase::pData(eset)) == sample.mapping.column)
+	    if(length(idx) == 0) { # sample.mapping.column == "characteristics_ch1") {
+		idx = 2 
+	    } 
+	    sample.mapping = Biobase::pData(eset)
+	    write.table(sample.mapping, paste0(out.file.2, ".full"), sep="\t", quote=F, row.names=F)
+	    sample.mapping = Biobase::pData(eset)[,c(1, idx)] #[,c(1:2)]
 	    colnames(sample.mapping) = c("sample", "type")
 	} else { # GSE
-	    if (length(data.set) > 1) idx = grep(geo.id, attr(data.set, "names")) else idx = 1 
+	    if (length(data.set) > 1) {
+		if(is.null(geo.id.sub)) {
+		    idx = grep(geo.id, attr(data.set, "names")) 
+		} else {
+		    idx = grep(geo.id.sub, attr(data.set, "names")) 
+		}
+	    } else {
+		idx = 1 
+	    }
 	    eset = data.set[[idx]]
+	    sample.mapping = Biobase::pData(eset)
+	    sample.mapping$sample = rownames(Biobase::pData(eset))
+	    write.table(sample.mapping, paste0(out.file.2, ".full"), sep="\t", quote=F, row.names=F)
 	    sample.mapping = data.frame(sample=rownames(Biobase::pData(eset)), type=Biobase::pData(eset)[, sample.mapping.column])
 	}
 	write.table(sample.mapping, out.file.2, sep="\t", quote=F, row.names=F)
-	expr = Biobase::exprs(eset)
+	# Get expression data
+	if(!is.null(reprocess)) {
+	    if(reprocess == "affy") {
+		if (!requireNamespace("affy", quietly=TRUE)) {
+		    stop("Reprocessing of Affymetric arrays requires affy package to be installed")
+		}
+		output.dir.raw = paste0(output.dir, "raw/")
+		if (!file.exists(output.dir.raw)){
+		    file.paths = getGEOSuppFiles(geo.id, baseDir = output.dir) 
+		}
+		untar(paste0(output.dir, geo.id, "_RAW.tar"), exdir=output.dir.raw)
+		d = affy::ReadAffy(celfile.path = output.dir.raw) 
+		sampleNames(d) <- sub("(_|\\.).*CEL\\.gz","", sampleNames(d))
+		eset.raw = affy::rma(d) 
+		expr = Biobase::exprs(eset.raw)
+	    } else if(reprocess == "illumina") {
+		stop("Not implemented!")
+		if (!requireNamespace("beadarray", quietly=TRUE)) {
+		    stop("Reprocessing of Illumina arrays requires beadarray package to be installed")
+		}
+		#d = beadarray::readBeadSummaryData(paste0(output.dir, geo.id, "_RAW.tar"), skip=0, columns=list(exprs = "AVG_Signal"))
+		#expr = Biobase::exprs(d)
+		#eset = beadarray::normaliseIllumina(expr, method="quantile", transform="log2")
+	    } else {
+		stop("Unrecognized reprocessing type")
+	    }
+	} else {
+	    expr = Biobase::exprs(eset)
+	}
 	if(is.null(do.log2)) {
 	    # Check whether data is already log transformed (from GEO2R)
 	    qx = as.numeric(quantile(expr, c(0., 0.25, 0.5, 0.75, 0.99, 1.0), na.rm=T))
@@ -56,7 +102,7 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	    # To avoid leaving out probes with negative values
 	    #expr[which(expr <= 0)] = NA
 	    if(min(expr, na.rm=T) < 0) {
-		expr = expr - min(expr)
+		expr = expr - min(expr, na.rm=T)
 	    }
 	    expr = log2(expr+1)
 	}
