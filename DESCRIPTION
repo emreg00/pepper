@@ -17,6 +17,8 @@ Depends:
 Suggests:
     limma,
     affy,
-    samr
+    samr,
+    preprocessCore,
+    makecdfenv
 License: TBA - potentially GPL
 LazyData: true

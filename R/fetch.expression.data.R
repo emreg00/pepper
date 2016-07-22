@@ -60,25 +60,56 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	write.table(sample.mapping, out.file.2, sep="\t", quote=F, row.names=F)
 	# Get expression data
 	if(!is.null(reprocess)) {
-	    if(reprocess == "affy") {
-		if (!requireNamespace("affy", quietly=TRUE)) {
-		    stop("Reprocessing of Affymetric arrays requires affy package to be installed")
-		}
-		output.dir.raw = paste0(output.dir, "raw/")
-		if (!file.exists(output.dir.raw)){
-		    file.paths = getGEOSuppFiles(geo.id, baseDir = output.dir) 
-		}
+	    output.dir.raw = paste0(output.dir, "raw/")
+	    if (!file.exists(output.dir.raw)){
+		file.paths = GEOquery::getGEOSuppFiles(geo.id, baseDir = paste0(output.dir, "../")) 
 		untar(paste0(output.dir, geo.id, "_RAW.tar"), exdir=output.dir.raw)
-		d = affy::ReadAffy(celfile.path = output.dir.raw) 
-		sampleNames(d) <- sub("(_|\\.).*CEL\\.gz","", sampleNames(d))
-		eset.raw = affy::rma(d) 
-		expr = Biobase::exprs(eset.raw)
-	    } else if(reprocess == "illumina") {
-		stop("Not implemented!")
-		if (!requireNamespace("beadarray", quietly=TRUE)) {
-		    stop("Reprocessing of Illumina arrays requires beadarray package to be installed")
+	    }
+	    if(substr(reprocess, 1, nchar("affy")) == "affy") {
+		if (!requireNamespace("affy", quietly=TRUE)) {
+		    stop("Reprocessing of Affymetrix arrays requires affy package to be installed")
 		}
-		#d = beadarray::readBeadSummaryData(paste0(output.dir, geo.id, "_RAW.tar"), skip=0, columns=list(exprs = "AVG_Signal"))
+		arguments = unlist(strsplit(reprocess, "\\|"))
+		if(length(arguments) == 1) {
+		    d = affy::ReadAffy(celfile.path = output.dir.raw) 
+		    Biobase::sampleNames(d) <- sub("(_|\\.).*CEL\\.gz","",  Biobase::sampleNames(d))
+		    eset.raw = affy::rma(d) 
+		    expr = Biobase::exprs(eset.raw)
+		} else {
+		    if (!requireNamespace("makecdfenv", quietly=TRUE)) {
+		    	stop("Reprocessing of Affymetrix arrays with custom annotation requires makecdfenv package to be installed")
+		    }
+		    # CDF environment is not recognized in rma (potentially due to namespace issues)
+		    # Load manually created expr instead
+		    if(file.exists(paste0(out.file, ".probe"))) {
+			expr = read.table(paste0(out.file, ".probe"), sep="\t", header=T, check.names=F) 
+		    } else {
+			cdf = makecdfenv::make.cdf.env(arguments[2], cdf.path = output.dir.raw, compress=T) 
+			environment(cdf) = asNamespace('affy')
+			d = affy::ReadAffy(celfile.path = output.dir.raw, cdfname="cdf")
+			Biobase::sampleNames(d) <- sub("(_|\\.).*CEL\\.gz","",  Biobase::sampleNames(d))
+			eset.raw = affy::rma(d) 
+			expr = Biobase::exprs(eset.raw)
+			#write.table(expr, paste0(out.file, ".probe"), sep="\t", quote=F)
+		    }
+		}
+	    } else if(substr(reprocess, 1, nchar("illumina")) == "illumina") {
+		#if (!requireNamespace("beadarray", quietly=TRUE)) {
+		#    stop("Reprocessing of Illumina arrays requires beadarray package to be installed")
+		#}
+		if (!requireNamespace("limma", quietly=TRUE) | !requireNamespace("preprocessCore", quietly=TRUE)) {
+		    stop("Reprocessing of Illumina arrays requires limma and preprocessCore packages to be installed")
+		}
+		arguments = unlist(strsplit(reprocess, "\\|"))
+		d = read.csv(paste0(output.dir, "filelist.txt"), sep="\t")
+		data.set = limma::read.ilmn(d[d$Type=="TXT","Name"], path=output.dir.raw, probeid = arguments[2], expr = arguments[3]) # "ProbeSet_name" "Beadstudio_intensity"
+		expr = apply(data.set$E, 2, as.numeric)
+		expr = preprocessCore::normalize.quantiles(expr)
+		rownames(expr) = rownames(data.set$E)
+		colnames(expr) = sub("(_|\\.).*txt\\.gz","", d[d$Type=="TXT","Name"])
+		# ctrlfiles = "AsuragenMAQC -controls.txt", annotation = "TargetID", other.columns = c("Detection  Pval") 
+		#d = beadarray::readBeadSummaryData(paste0(output.dir, geo.id, "_RAW.tar"), skip=0, ProbeID = "ProbeSet_name", columns=list(exprs = "Beadstudio_intensity")) # AVG_Signal
+		#d = readIllumina(output.dir.raw, useImages=FALSE, illuminaAnnotation = "Humanv3")
 		#expr = Biobase::exprs(d)
 		#eset = beadarray::normaliseIllumina(expr, method="quantile", transform="log2")
 	    } else {

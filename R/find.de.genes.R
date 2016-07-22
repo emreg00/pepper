@@ -54,22 +54,26 @@ find.de.genes<-function(expr, sample.mapping, states, method="limma", out.file=N
 	}
 	genes = rownames(d)
 	genes = unlist(lapply(strsplit(genes, " /// "), function(x) {x[1]}))
-	if(!is.null(out.file)) {
-	    file.name = paste0(out.file, ".", functional.enrichment)
-	}
-	if(functional.enrichment == "go") {
-	    limma::go = goana(genes)
-	    a = limma::topGO(go)
-	} else if(functional.enrichment == "kegg") {
-	    kegg = limma::kegga(genes)
-	    a = limma::topKEGG(kegg)
+	if(length(genes) > 0) {
+	    if(!is.null(out.file)) {
+		file.name = paste0(out.file, ".", functional.enrichment)
+	    }
+	    if(functional.enrichment == "go") {
+		limma::go = goana(genes)
+		a = limma::topGO(go)
+	    } else if(functional.enrichment == "kegg") {
+		kegg = limma::kegga(genes)
+		a = limma::topKEGG(kegg)
+	    } else {
+		stop("Unrecognized functional enrichment type!")
+	    }
+	    if(is.null(out.file)) {
+		print(a)
+	    } else {
+		write.table(a, file=file.name, row.names=T, quote=F, sep="\t")
+	    }
 	} else {
-	    stop("Unrecognized functional enrichment type!")
-	}
-	if(is.null(out.file)) {
-	    print(a)
-	} else {
-	    write.table(a, file=file.name, row.names=T, quote=F, sep="\t")
+	    print("No DE genes at given cutoff!")
 	}
     }
     return(d)
