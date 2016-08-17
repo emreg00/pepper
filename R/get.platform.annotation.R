@@ -6,7 +6,7 @@
 #' @param output.dir Directory to store files.
 #' @return Data frame containing gene mapping.
 get.platform.annotation<-function(geo.id, probe.conversion, output.dir) {
-    data.set = get.data.set(geo.id, output.dir)
+    data.set = get.data.set(geo.id, output.dir, is.annotation=T)
     d = GEOquery::Table(data.set)
     #print(colnames(d)) 
     #print(probe.conversion)

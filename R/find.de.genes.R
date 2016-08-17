@@ -60,10 +60,10 @@ find.de.genes<-function(expr, sample.mapping, states, method="limma", out.file=N
 	    }
 	    if(functional.enrichment == "go") {
 		limma::go = goana(genes)
-		a = limma::topGO(go)
+		a = limma::topGO(go, number=500)
 	    } else if(functional.enrichment == "kegg") {
 		kegg = limma::kegga(genes)
-		a = limma::topKEGG(kegg)
+		a = limma::topKEGG(kegg, number=Inf)
 	    } else {
 		stop("Unrecognized functional enrichment type!")
 	    }
