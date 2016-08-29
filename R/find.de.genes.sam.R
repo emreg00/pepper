@@ -21,10 +21,10 @@ find.de.genes.sam<-function(expr, sample.mapping, states, out.file=NULL, state.b
     x = as.matrix(expr)
     y = ifelse(sample.mapping$type == state.background, 1, 2)
 
-    samfit = samr::SAM(x, y, resp.type="Two class unpaired", fdr.output=cutoff)
+    samfit = samr::SAM(x, y, resp.type="Two class unpaired", fdr.output=1, geneid=rownames(expr))
     #samfit = invisible(samr::SAM(x, y, resp.type="Two class unpaired", fdr.output=cutoff))
     d = rbind(samfit$siggenes.table$genes.up, samfit$siggenes.table$genes.lo)
-    d = data.frame(GeneID=d[,2], logFC=as.double(d[,6]), adj.P.Val=as.double(d[,7])/100)
+    d = data.frame(GeneID=d[,2], Score=d[,3], logFC=as.double(d[,6]), adj.P.Val=as.double(d[,7])/100)
     d = d[order(d$adj.P.Val),]
 
     if(!is.null(out.file)) {

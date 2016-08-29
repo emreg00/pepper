@@ -34,7 +34,7 @@ get.z.matrix<-function(expr, sample.mapping, states.control=NULL, states.case=NU
     samples = as.vector(sample.mapping[sample.mapping$type == "case", "sample"])
     samples.background = as.vector(sample.mapping[sample.mapping$type == "control", "sample"])
     expr = expr[,c(samples, samples.background)]
-    z = get.z.score(expr, samples.background, method)
+    z = get.z.score(expr, samples.background, method, samples.to.exclude=NULL)
     # Ignoring NAs (genes with missing expression) to avoid future problems in counting
     z = na.omit(z)
     if(!is.null(out.file)) {
@@ -42,5 +42,4 @@ get.z.matrix<-function(expr, sample.mapping, states.control=NULL, states.case=NU
     }
     return(z)
 }
-
 

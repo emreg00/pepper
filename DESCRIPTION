@@ -22,3 +22,4 @@ Suggests:
     makecdfenv
 License: TBA - potentially GPL
 LazyData: true
+RoxygenNote: 5.0.1.9000
