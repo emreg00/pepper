@@ -9,7 +9,7 @@
 #' Defaults to NULL (no conversion). In case of multiple probes, probe with absolute max
 #' value is chosen.
 #' @param conversion.mapping Mapping of platform specific ids to user provided ids
-#' @param conversion.mapping.function Function to process probe name such that it matches
+#' @param conversion.mapping.function Function to process the mapped name such that it matches
 #' with the ids provided in conversion.map
 #' @param geo.id.sub GEO id for the sub-set (e.g., specific to the platform).
 #' @return A list containing 3 data frames: expression matrix, sample mapping, gene mapping.

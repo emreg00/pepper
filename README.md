@@ -39,7 +39,7 @@ R CMD INSTALL pepper.tgz
 > 
 ```
 
-See documentation on the following functions for their use:
+See the documentation on the following functions for their use (?function.name):
 - `fetch.expression.data`: for fetching information from NCBI GEO data base 
 - `find.de.genes`: for getting group-wise DE genes
 - `get.z.matrix` and `get.z.score`: for getting per-individual DE genes
