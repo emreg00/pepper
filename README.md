@@ -86,3 +86,8 @@ indices <- apply(abs(z), 2, function(x) { which(x >= cutoff)})
 geneids <- lapply(indices, function(x) { rownames(z)[x] })
 ```
 
+
+## Citation
+
+Menche J et al., Integrating personalized gene expression profiles into predictive disease-associated gene pools. Npj Systems Biology and Applications 2017;3:10 [Pubmed](https://www.ncbi.nlm.nih.gov/pubmed/28649437)
+
