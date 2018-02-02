@@ -23,5 +23,3 @@ Data frame containing z-scores
 Calculates z-score for each gene in each sample
 using the mean and sd over provided control samples.
 }
-\keyword{internal}
-

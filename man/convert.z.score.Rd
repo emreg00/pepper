@@ -18,4 +18,3 @@ P-values.
 Convert z-scores to P-values.
 }
 \keyword{internal}
-

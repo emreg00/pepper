@@ -37,4 +37,3 @@ z = get.z.matrix(expr, sample.mapping,
 	states.control = c("healthy donor"), 
 	states.case = c("tuberculosis", "latent tuberculosis infection"))
 }
-

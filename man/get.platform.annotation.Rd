@@ -19,4 +19,4 @@ Data frame containing gene mapping.
 \description{
 Get array platform annotation for probes
 }
-
+\keyword{internal}

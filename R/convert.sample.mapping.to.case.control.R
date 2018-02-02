@@ -6,7 +6,6 @@
 #' @param states.control Conditions to be used as background
 #' @param out.file File name to write the converted mapping
 #' @return a data frame containin sample mapping
-#' @keywords internal 
 #' @export
 #' @examples
 #' #sample.mapping = convert.sample.mapping.to.case.control(sample.mapping,

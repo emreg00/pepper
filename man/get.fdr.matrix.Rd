@@ -4,12 +4,14 @@
 \alias{get.fdr.matrix}
 \title{Get fdr matrix}
 \usage{
-get.fdr.matrix(z, out.file = NULL)
+get.fdr.matrix(z, adjust.method, out.file = NULL)
 }
 \arguments{
-\item{out.file}{Output file for writing z score matrix.}
+\item{z}{Data frame containing z-scores (probes vs samples).}
 
-\item{Data}{frame containing z-scores (probes vs samples).}
+\item{adjust.method}{P-value correction method (see p.adjust).}
+
+\item{out.file}{Output file for writing z score matrix.}
 }
 \value{
 Data frame containing FDR values.
@@ -17,5 +19,3 @@ Data frame containing FDR values.
 \description{
 Calculates FDRs from z-scores for each gene in each sample.
 }
-\keyword{internal}
-

@@ -21,7 +21,7 @@ value is chosen.}
 
 \item{conversion.mapping}{Mapping of platform specific ids to user provided ids}
 
-\item{conversion.mapping.function}{Function to process probe name such that it matches
+\item{conversion.mapping.function}{Function to process the mapped name such that it matches
 with the ids provided in conversion.map}
 
 \item{output.dir}{Directory where all files will be written.}
@@ -39,4 +39,3 @@ gds.data = fetch.expression.data("GDS4966", do.log2=F, probe.conversion="Gene ID
 expr = gds.data$expr
 sample.mapping = gds.data$sample.mapping
 }
-

@@ -25,5 +25,3 @@ Convert probe level expression to gene level
 \examples{
 #expr.gene = convert.probe.to.gene.expression(expr, gene.mapping)
 }
-\keyword{internal}
-

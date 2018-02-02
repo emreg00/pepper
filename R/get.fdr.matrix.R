@@ -6,7 +6,6 @@
 #' @param adjust.method P-value correction method (see p.adjust).
 #' @param out.file Output file for writing z score matrix.
 #' @return Data frame containing FDR values.
-#' @keywords internal
 #' @export
 get.fdr.matrix<-function(z, adjust.method, out.file=NULL) {
     if(!is.null(out.file)) {

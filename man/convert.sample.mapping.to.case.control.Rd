@@ -27,5 +27,3 @@ Convert sample mapping to case control from conditions
 # 		    states.control = c("healthy donor"), 
 #		    states.case = c("tuberculosis", "latent tuberculosis infection"))
 }
-\keyword{internal}
-

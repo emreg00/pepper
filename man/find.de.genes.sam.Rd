@@ -29,4 +29,3 @@ Data frame with results.
 \description{
 Find differentially expressed genes using SAM
 }
-

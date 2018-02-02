@@ -8,8 +8,7 @@
 #' @param method Method to calculate the z score, defaults to mean and sd, use median for med and mad.
 #' @param samples.to.exclude Names of the samples to be excluded from background (for CV).
 #' @return Data frame containing z-scores
-#' @keywords internal
-#' @export
+#' @export 
 get.z.score<-function(expr, samples.background, method="mean", samples.to.exclude=NULL) {
     if(!is.null(samples.to.exclude)) { # For CV 
 	samples.background = setdiff(samples.background, samples.to.exclude)

@@ -8,7 +8,6 @@
 #'	highest IQR). Other options var (highest variance), med (median
 #'	of the probes)
 #' @return a data frame containin gene level expression data
-#' @keywords internal
 #' @export 
 #' @examples
 #' #expr.gene = convert.probe.to.gene.expression(expr, gene.mapping)

@@ -43,5 +43,3 @@ sample.mapping = convert.sample.mapping.to.case.control(sample.mapping,
 		    states.case = c("tuberculosis", "latent tuberculosis infection"))
 d = find.de.genes(expr, sample.mapping, c("case", "control"), method="limma")
 }
-\keyword{internal}
-

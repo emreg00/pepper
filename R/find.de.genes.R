@@ -12,7 +12,6 @@
 #' @param cutoff Adjust p-value cutoff. Defaults to 0.05
 #' @param functional.enrichment GO or KEGG based functional enrichment analysis
 #' @return data frame with results
-#' @keywords internal
 #' @export
 #' @examples
 #' gds.data = fetch.expression.data("GDS4966", do.log2=F, probe.conversion="Gene ID")

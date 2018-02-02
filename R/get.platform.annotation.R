@@ -5,6 +5,7 @@
 #' @param probe.conversion Id of the column used for probe gene mapping.
 #' @param output.dir Directory to store files.
 #' @return Data frame containing gene mapping.
+#' @keywords internal
 get.platform.annotation<-function(geo.id, probe.conversion, output.dir) {
     data.set = get.data.set(geo.id, output.dir, is.annotation=T)
     d = GEOquery::Table(data.set)

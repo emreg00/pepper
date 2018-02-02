@@ -4,6 +4,7 @@
 #' @param geo.id GEO id.
 #' @param output.dir Output directory to write / look for files.
 #' @return data set 
+#' @export
 get.data.set<-function(geo.id, output.dir, is.annotation=F) {
     data.set = NULL
     #a = list.files(path = output.dir, pattern = geo.id)
