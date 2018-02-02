@@ -18,8 +18,20 @@ Suggests:
 -    preprocessCore
 -    makecdfenv
 
+
 ## Installation
 
+### Directly from GitHub
+You can use `install_github()` method in [devtools](https://github.com/hadley/devtools) package
+
+```R
+install.packages("devtools")
+library(devtools)
+install_github("emreg00/pepper")
+```
+
+
+### From an archieve file 
 Create a tarball containing the files in the repository
 
 ```bash
