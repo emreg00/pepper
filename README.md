@@ -70,9 +70,9 @@ probe.conversion <- "ENTREZ_GENE_ID" # column name for gene id mapping
 conversion.map <- NULL # probe to gene mapping, if NULL uses the mapping in the data set
 conversion.mapping.function <- NULL # modify probe names using this function 
 sample.mapping.column <- "characteristics_ch1" # column to use for sample mapping
-geo.id.sub = NULL # the platform to use if there are multiple platform annotations
+geo.id.sub <- NULL # the platform to use if there are multiple platform annotations
 reprocess <- "affy" # reprocessing type for raw data
-output.dir <- "."
+output.dir <- "./"
 
 # Get the expression and sample mapping info from the reprocessed data set
 d <- fetch.expression.data(geo.id, sample.mapping.column = sample.mapping.column, do.log2 = NULL, probe.conversion = probe.conversion, conversion.map = conversion.map, conversion.mapping.function = conversion.mapping.function, output.dir = output.dir, geo.id.sub = geo.id.sub, reprocess = reprocess)

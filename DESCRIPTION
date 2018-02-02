@@ -20,7 +20,8 @@ Suggests:
     samr,
     preprocessCore,
     makecdfenv,
-    plyr
+    plyr,
+    ArrayExpress
 License: TBA - potentially GPL
 LazyData: true
 RoxygenNote: 6.0.1

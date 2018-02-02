@@ -15,7 +15,7 @@ find.de.genes.limma<-function(expr, sample.mapping, states, out.file=NULL, state
 	stop("Differential expression using LIMMA requires limma package to be installed")
     }
     #if(ncol(expr) != nrow(sample.mapping)) {
-    #	print(c("Warning: inconsistent dimenstions!", ncol(expr), nrow(sample.mapping)))
+    #	message("Warning: inconsistent dimenstions! ", ncol(expr), " ", nrow(sample.mapping))
     #}
     expr = expr[,as.vector(sample.mapping$sample)]
     design = model.matrix(~ 0 + sample.mapping$type)

@@ -6,30 +6,34 @@
 \usage{
 fetch.expression.data(geo.id, sample.mapping.column = "characteristics_ch1",
   do.log2 = NULL, probe.conversion = NULL, conversion.mapping = NULL,
-  conversion.mapping.function = NULL, output.dir = paste(geo.id, "/", sep =
-  ""), geo.id.sub = NULL, reprocess = NULL)
+  conversion.mapping.function = NULL, output.dir = getwd(),
+  geo.id.sub = NULL, reprocess = NULL)
 }
 \arguments{
-\item{geo.id}{GEO id.}
+\item{geo.id}{GEO id}
 
-\item{do.log2}{Apply log2 transformation to the expression values. Defaults to TRUE.}
+\item{sample.mapping.column}{The column in the sample annotation that contains phenotype 
+info (default: "characteristics_ch1")}
+
+\item{do.log2}{Apply log2 transformation to the expression values. If NULL (default), 
+deduced from the data (code from GEO2R at NCBI)}
 
 \item{probe.conversion}{Convert probe level expression to gene level using provided 
-annotation label (uses platform specific annotations downloaded from GEO). 
+annotation label (uses platform specific annotations downloaded from GEO)
 Defaults to NULL (no conversion). In case of multiple probes, probe with absolute max
-value is chosen.}
+value is chosen}
 
 \item{conversion.mapping}{Mapping of platform specific ids to user provided ids}
 
 \item{conversion.mapping.function}{Function to process the mapped name such that it matches
 with the ids provided in conversion.map}
 
-\item{output.dir}{Directory where all files will be written.}
+\item{output.dir}{Directory where all files will be written (defaults to current working dir)}
 
-\item{geo.id.sub}{GEO id for the sub-set (e.g., specific to the platform).}
+\item{geo.id.sub}{GEO id for the sub-set (e.g., specific to the platform)}
 }
 \value{
-A list containing 3 data frames: expression matrix, sample mapping, gene mapping.
+A list containing 3 data frames: expression matrix, sample mapping, gene mapping
 }
 \description{
 Fetch expression data from GEO / or given folder

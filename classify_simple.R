@@ -18,7 +18,7 @@ n.repetition = 100
 
 
 main<-function() {
-    classify("autoimmune", "RepeatedCVWithinBatch", "peep") # "LOOCVWithinBatch"
+    classify("GSE17755", "RepeatedCVWithinBatch", "peep") # "LOOCVWithinBatch"
 }
 
 

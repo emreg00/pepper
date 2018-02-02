@@ -1,30 +1,34 @@
 
 #' Fetch expression data from GEO / or given folder
 #'
-#' @param geo.id GEO id.
-#' @param do.log2 Apply log2 transformation to the expression values. Defaults to TRUE.
-#' @param output.dir Directory where all files will be written.
+#' @param geo.id GEO id
+#' @param sample.mapping.column The column in the sample annotation that contains phenotype 
+#' info (default: "characteristics_ch1")
+#' @param do.log2 Apply log2 transformation to the expression values. If NULL (default), 
+#' deduced from the data (code from GEO2R at NCBI)
 #' @param probe.conversion Convert probe level expression to gene level using provided 
-#' annotation label (uses platform specific annotations downloaded from GEO). 
+#' annotation label (uses platform specific annotations downloaded from GEO)
 #' Defaults to NULL (no conversion). In case of multiple probes, probe with absolute max
-#' value is chosen.
+#' value is chosen
 #' @param conversion.mapping Mapping of platform specific ids to user provided ids
 #' @param conversion.mapping.function Function to process the mapped name such that it matches
 #' with the ids provided in conversion.map
-#' @param geo.id.sub GEO id for the sub-set (e.g., specific to the platform).
-#' @return A list containing 3 data frames: expression matrix, sample mapping, gene mapping.
+#' @param output.dir Directory where all files will be written (defaults to current working dir)
+#' @param geo.id.sub GEO id for the sub-set (e.g., specific to the platform)
+#' @return A list containing 3 data frames: expression matrix, sample mapping, gene mapping
 #' @export
 #' @examples
 #' gds.data = fetch.expression.data("GDS4966", do.log2=F, probe.conversion="Gene ID")
 #' expr = gds.data$expr
 #' sample.mapping = gds.data$sample.mapping
-fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_ch1", do.log2=NULL, probe.conversion=NULL, conversion.mapping=NULL, conversion.mapping.function=NULL, output.dir=paste(geo.id, "/", sep=""), geo.id.sub=NULL, reprocess=NULL) {
+fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_ch1", do.log2=NULL, probe.conversion=NULL, conversion.mapping=NULL, conversion.mapping.function=NULL, output.dir=getwd(), geo.id.sub=NULL, reprocess=NULL) {
+    output.dir = file.path(output.dir, geo.id)
     if (!file.exists(output.dir)){
-	dir.create(file.path(output.dir))
+	dir.create(output.dir)
     } 
-    out.file = paste(output.dir, "expr.dat", sep="")
-    out.file.2 = paste(output.dir, "mapping.dat", sep="")
-    out.file.3 = paste(output.dir, "annotation.dat", sep="")
+    out.file = file.path(output.dir, "expr.dat")
+    out.file.2 = file.path(output.dir, "mapping.dat")
+    out.file.3 = file.path(output.dir, "annotation.dat")
     # Load expression file if exists
     if(!all(file.exists(out.file), file.exists(out.file.2), file.exists(out.file.3))) {
 	# Get data set
@@ -41,7 +45,7 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	    write.table(sample.mapping, paste0(out.file.2, ".full"), sep="\t", quote=F, row.names=F)
 	    sample.mapping = Biobase::pData(eset)[,c(1, idx)] #[,c(1:2)]
 	    colnames(sample.mapping) = c("sample", "type")
-	} else { # GSE
+	} else { # GSE or ArrayExpress
 	    if (length(data.set) > 1) {
 		if(is.null(geo.id.sub)) {
 		    idx = grep(geo.id, attr(data.set, "names")) 
@@ -56,14 +60,16 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	    sample.mapping$sample = rownames(Biobase::pData(eset))
 	    write.table(sample.mapping, paste0(out.file.2, ".full"), sep="\t", quote=F, row.names=F)
 	    sample.mapping = data.frame(sample=rownames(Biobase::pData(eset)), type=Biobase::pData(eset)[, sample.mapping.column])
-	}
+	} 
 	write.table(sample.mapping, out.file.2, sep="\t", quote=F, row.names=F)
 	# Get expression data
 	if(!is.null(reprocess)) {
-	    output.dir.raw = paste0(output.dir, "raw/")
-	    if (!file.exists(output.dir.raw)){
-		file.paths = GEOquery::getGEOSuppFiles(geo.id, baseDir = paste0(output.dir, "../")) 
-		untar(paste0(output.dir, geo.id, "_RAW.tar"), exdir=output.dir.raw)
+	    if(substr(geo.id,1,3) == "GSE") { # GSE
+		output.dir.raw = file.path(output.dir, "raw", "")
+		if (!file.exists(output.dir.raw)){
+		    file.paths = GEOquery::getGEOSuppFiles(geo.id, baseDir = file.path(output.dir, "..", "")) 
+		    untar(file.path(output.dir, paste0(geo.id, "_RAW.tar")), exdir=output.dir.raw)
+		}
 	    }
 	    if(substr(reprocess, 1, nchar("affy")) == "affy") {
 		if (!requireNamespace("affy", quietly=TRUE)) {
@@ -71,8 +77,12 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 		}
 		arguments = unlist(strsplit(reprocess, "\\|"))
 		if(length(arguments) == 1) {
-		    d = affy::ReadAffy(celfile.path = output.dir.raw) 
-		    Biobase::sampleNames(d) <- sub("(_|\\.).*CEL\\.gz","",  Biobase::sampleNames(d))
+		    if(substr(geo.id,1,3) == "GSE") { # GSE
+			d = affy::ReadAffy(celfile.path = output.dir.raw) 
+			Biobase::sampleNames(d) <- sub("(_|\\.).*CEL\\.gz","",  Biobase::sampleNames(d))
+		    } else { # ArrayExpress
+			d = ArrayExpress::ae2bioc(mageFiles = eset)
+		    }
 		    eset.raw = affy::rma(d) 
 		    expr = Biobase::exprs(eset.raw)
 		} else {
@@ -108,7 +118,7 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 		rownames(expr) = rownames(data.set$E)
 		colnames(expr) = sub("(_|\\.).*txt\\.gz","", d[d$Type=="TXT","Name"])
 		# ctrlfiles = "AsuragenMAQC -controls.txt", annotation = "TargetID", other.columns = c("Detection  Pval") 
-		#d = beadarray::readBeadSummaryData(paste0(output.dir, geo.id, "_RAW.tar"), skip=0, ProbeID = "ProbeSet_name", columns=list(exprs = "Beadstudio_intensity")) # AVG_Signal
+		#d = beadarray::readBeadSummaryData(paste0(output.dir.raw, geo.id, "_RAW.tar"), skip=0, ProbeID = "ProbeSet_name", columns=list(exprs = "Beadstudio_intensity")) # AVG_Signal
 		#d = readIllumina(output.dir.raw, useImages=FALSE, illuminaAnnotation = "Humanv3")
 		#expr = Biobase::exprs(d)
 		#eset = beadarray::normaliseIllumina(expr, method="quantile", transform="log2")
@@ -129,7 +139,7 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	    }
 	}
 	if(do.log2) {
-	    print("Expression will be log2 transformed")
+	    message("Expression will be log2 transformed")
 	    # To avoid leaving out probes with negative values
 	    #expr[which(expr <= 0)] = NA
 	    if(min(expr, na.rm=T) < 0) {
@@ -141,10 +151,10 @@ fetch.expression.data<-function(geo.id, sample.mapping.column="characteristics_c
 	expr = na.omit(expr)
 	# Get probe - gene mapping
 	if(!is.null(probe.conversion)) {
-	    if(is.null(nrow(Biobase::fData(eset)))) {
+	    if(is.null(nrow(Biobase::fData(eset))) | ncol(Biobase::fData(eset)) == 0) {
 		if(substr(geo.id,1,3) == "GDS") {
 		    geo.id.platform = GEOquery::Meta(data.set)$platform
-		} else {
+		} else { # GSE or ArrayExpress
 		    geo.id.platform = Biobase::annotation(eset)
 		}
 		gene.mapping = get.platform.annotation(geo.id.platform, probe.conversion, output.dir)

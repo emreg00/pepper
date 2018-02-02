@@ -15,7 +15,7 @@ get.data.set<-function(geo.id, output.dir, is.annotation=F) {
     if(is.annotation) {
 	for(suffix in c("annot", "soft", "annot.gz", "soft.gz")) {
 	    if(is.null(data.set)) {
-		file.name = paste0(output.dir, geo.id, ".", suffix) 
+		file.name = file.path(output.dir, paste0(geo.id, ".", suffix))
 		if(file.exists(file.name)) {
 		    data.set = GEOquery::getGEO(filename=file.name)
 		} 
@@ -28,8 +28,13 @@ get.data.set<-function(geo.id, output.dir, is.annotation=F) {
 	# Get GEO file
 	if(substr(geo.id,1,3) == "GSE") {
 	    data.set = GEOquery::getGEO(geo.id, destdir=output.dir, GSEMatrix=T)
-	} else {
+	} else if(substr(geo.id,1,3) == "GDS") {
 	    data.set = GEOquery::getGEO(geo.id, destdir=output.dir, GSEMatrix=T, AnnotGPL=T)
+	} else { # Assumes ArrayExpress file
+	    if (!requireNamespace("ArrayExpress", quietly=TRUE)) {
+		stop("Retreiving ArrayExpress data sets requires ArrayExpress package to be installed!")
+	    }
+	    data.set = ArrayExpress::getAE(geo.id, path=output.dir, type="full", local=T)
 	}
     }
     return(data.set)

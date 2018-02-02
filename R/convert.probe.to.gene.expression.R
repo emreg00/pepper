@@ -13,7 +13,7 @@
 #' #expr.gene = convert.probe.to.gene.expression(expr, gene.mapping)
 convert.probe.to.gene.expression<-function(expr, gene.mapping, selection.method="iqr") {
     if(nrow(gene.mapping) != nrow(expr)) {
-	print("Warning: dimension inconsisitency in gene annotation!")
+	message("Warning: The number of rows in gene annotation (", nrow(gene.mapping), ") is different than the ones in expression data set (", nrow(expr), ")!")
 	gene.mapping = as.data.frame(gene.mapping[gene.mapping$Probe %in% rownames(expr),]) #gene.mapping[rownames(gene.mapping) %in% rownames(expr),])
 	expr = expr[rownames(expr) %in% gene.mapping$Probe,] #expr[rownames(gene.mapping),]
     }
