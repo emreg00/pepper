@@ -4,7 +4,7 @@
 \alias{get.peeps.from.z.matrix}
 \title{Get peeps from z-score matrix}
 \usage{
-get.peeps.from.z.matrix(z, cutoff, convert.to.pvalues)
+get.peeps.from.z.matrix(z, cutoff, convert.to.pvalues, adjust.method = "BH")
 }
 \arguments{
 \item{z}{Matrix containing z-scores (genes vs samples), tab separated.}
@@ -13,6 +13,8 @@ get.peeps.from.z.matrix(z, cutoff, convert.to.pvalues)
 
 \item{convert.to.pvalues}{Flag to convert z-scores to p-values. 
 If TRUE, the z-scores are converted to P-values which are then corrected for multiple hypothesis testing.}
+
+\item{adjust.method}{P-value correction method (see p.adjust).}
 }
 \value{
 Data frame containing sample name and geneid of genes in the peeps

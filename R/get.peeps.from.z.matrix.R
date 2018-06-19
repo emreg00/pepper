@@ -6,11 +6,12 @@
 #' @param cutoff Threshold for deciding peeps, either a z-score or adjusted p-value (if convert.to.pvalues=T).
 #' @param convert.to.pvalues Flag to convert z-scores to p-values. 
 #'	  If TRUE, the z-scores are converted to P-values which are then corrected for multiple hypothesis testing.
+#' @param adjust.method P-value correction method (see p.adjust).
 #' @return Data frame containing sample name and geneid of genes in the peeps
 #' @export
 #' @examples
 #' peeps <- get.peeps.from.z.matrix(z, cutoff=0.05, convert.to.pvalues=T) 
-get.peeps.from.z.matrix<-function(z, cutoff, convert.to.pvalues) {
+get.peeps.from.z.matrix<-function(z, cutoff, convert.to.pvalues, adjust.method="BH") {
     if (!requireNamespace("plyr", quietly=TRUE)) {
 	stop("This function requires plyr package to be installed!")
     }
