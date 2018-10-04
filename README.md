@@ -90,7 +90,7 @@ adjust.method <- 'BH'
 fdr.cutoff <- 0.05
 out.file <- "de.dat"
 de <- find.de.genes(expr, sample.mapping, c("case", "control"), method="limma", out.file, adjust.method=adjust.method, cutoff=fdr.cutoff, functional.enrichment="kegg") 
-de <- de[abs(d$logFC)>=1,]
+de <- de[abs(de$logFC)>=1,]
 ```
 
 - Get per-individual DE
