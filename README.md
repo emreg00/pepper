@@ -27,7 +27,7 @@ You can use `install_github()` method in [devtools](https://github.com/hadley/de
 ```R
 install.packages("devtools")
 library(devtools)
-install_github("emreg00/pepper")
+install_github("emreg00/pepper", dependencies = T)
 ```
 
 
